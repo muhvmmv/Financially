@@ -6,11 +6,9 @@ import {
   CreditCard, 
   Plus,
   Search,
-  Filter,
   ArrowUpRight,
   ArrowDownRight,
   Calendar,
-  DollarSign
 } from 'lucide-react';
 
 function Transactions() {

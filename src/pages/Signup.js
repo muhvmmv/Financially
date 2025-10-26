@@ -13,8 +13,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [verificationUrl, setVerificationUrl] = useState('');
-  const navigate = useNavigate();
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();

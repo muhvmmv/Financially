@@ -5,12 +5,9 @@ import Sidebar from '../components/Sidebar';
 import { 
   Bell, 
   Plus,
-  Settings,
   AlertTriangle,
   CheckCircle,
   X,
-  DollarSign,
-  TrendingUp
 } from 'lucide-react';
 
 function Alerts() {

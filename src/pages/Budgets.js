@@ -8,7 +8,6 @@ import {
   Edit,
   Trash2,
   DollarSign,
-  Calendar
 } from 'lucide-react';
 
 function Budgets() {

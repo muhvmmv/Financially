@@ -7,14 +7,11 @@ import {
   PieChart, 
   TrendingUp, 
   CreditCard, 
-  DollarSign, 
-  Users, 
+  DollarSign,  
   Bell, 
   ChevronDown, 
-  MoreVertical,
   ArrowUpRight,
   ArrowDownRight,
-  LogOut,
   RefreshCw
 } from 'lucide-react';
 
@@ -25,7 +22,6 @@ const monthNames = [
 
 export default function Dashboard() {
   const [linkToken, setLinkToken] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
