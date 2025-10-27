@@ -15,7 +15,7 @@ export default function Login() {
     setError('');
     
     try {
-      const response = await axios.post('https://financially.up.railway.app/api/auth/login', {
+      const response = await axios.post('https://financially-production.up.railway.app/api/auth/login', {
         email,
         password
       });
