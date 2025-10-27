@@ -12,7 +12,64 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
+exports.signup = async (req, res) => {
+  console.log('🔍 SIGNUP REQUEST RECEIVED:', req.body);
+  
+  const { name, email, password } = req.body;
+  
+  try {
+    // Basic validation
+    if (!name || !email || !password) {
+      console.log('❌ Missing required fields');
+      return res.status(400).json({ message: 'All fields are required' });
+    }
 
+    if (password.length < 6) {
+      console.log('❌ Password too short');
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    console.log('✅ Validation passed, creating pending registration...');
+
+    // Create pending registration
+    const pendingRegistration = await createPendingRegistration(name, email, password);
+
+    console.log('✅ Pending registration created, sending verification email');
+
+    // Send verification email
+    try {
+      const verificationUrl = await sendVerificationEmail(email, pendingRegistration.verification_token);
+
+      const response = {
+        success: true,
+        message: 'Registration successful! Please check your email to verify your account.'
+      };
+
+      // Only include verification URL in development
+      if (process.env.NODE_ENV !== 'production' && verificationUrl) {
+        response.verificationUrl = verificationUrl;
+      }
+
+      res.status(201).json(response);
+
+    } catch (emailError) {
+      console.error('❌ Failed to send verification email:', emailError);
+      // Delete the pending registration if email fails
+      await pool.query('DELETE FROM pending_registrations WHERE id = $1', [pendingRegistration.id]);
+      res.status(500).json({ 
+        message: 'Error sending verification email. Please try again.' 
+      });
+    }
+
+  } catch (err) {
+    console.error('SIGNUP ERROR:', err);
+    if (err.message === 'Email already in use') {
+      res.status(400).json({ message: 'Email already in use' });
+    } else {
+      res.status(500).json({ message: 'Signup failed', error: err.message });
+    }
+  }
+}; // <-- MAKE SURE THIS CLOSING BRACE AND PAREN ARE HERE
 // ==================== AUTHENTICATION FUNCTIONS ====================
 
 exports.signup = async (req, res) => {
