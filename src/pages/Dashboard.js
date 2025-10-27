@@ -17,7 +17,7 @@ import {
 
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'July', 'August', 'September', -'October', 'November', 'December'
 ];
 
 export default function Dashboard() {
