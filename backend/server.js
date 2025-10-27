@@ -16,7 +16,7 @@ const app = express();
 
 // Update CORS for production - add your Netlify URL
 const allowedOrigins = [
-  'https://your-app-name.netlify.app', // Your Netlify URL
+  'https://fiinancially.netlify.app', // Your Netlify URL
   'http://localhost:3000'
 ];
 
