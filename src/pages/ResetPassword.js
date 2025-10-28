@@ -19,7 +19,7 @@ export default function ResetPassword() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/password/verify-reset-token/${token}`);
+        const response = await axios.get(`http://localhost:5000/api/auth/verify-reset-token/${token}`);
         setIsTokenValid(true);
         setEmail(response.data.email);
       } catch (err) {
@@ -51,7 +51,7 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/password/reset-password', {
+      const response = await axios.post('http://localhost:5000/api/auth/reset-password', {
         token,
         newPassword
       });

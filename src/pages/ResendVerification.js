@@ -8,6 +8,7 @@ export default function ResendVerification() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationUrl, setVerificationUrl] = useState('');
   const location = useLocation();
 
   // Pre-fill email from location state (from login page)

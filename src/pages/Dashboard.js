@@ -7,21 +7,25 @@ import {
   PieChart, 
   TrendingUp, 
   CreditCard, 
-  DollarSign,  
+  DollarSign, 
+  Users, 
   Bell, 
   ChevronDown, 
+  MoreVertical,
   ArrowUpRight,
   ArrowDownRight,
+  LogOut,
   RefreshCw
 } from 'lucide-react';
 
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', -'October', 'November', 'December'
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
 export default function Dashboard() {
   const [linkToken, setLinkToken] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);

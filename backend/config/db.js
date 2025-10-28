@@ -1,12 +1,18 @@
+require('dotenv').config({ path: __dirname + '/.env' });
 const { Pool } = require('pg');
 
-// Use DATABASE_URL from Railway, fallback to .env for local development
-const connectionString = process.env.DATABASE_URL || 
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+console.log('Database connection details:');
+console.log(`Host: ${process.env.DB_HOST}`);
+console.log(`Port: ${process.env.DB_PORT}`);
+console.log(`Database: ${process.env.DB_NAME}`);
+console.log(`User: ${process.env.DB_USER}`);
 
 const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false } // Required for Railway's SSL
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // Test connection immediately

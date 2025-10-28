@@ -8,7 +8,7 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [setResetLink] = useState(''); // Add this state
+  const [resetLink, setResetLink] = useState(''); // Add this state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +18,7 @@ export default function ForgotPassword() {
     setResetLink(''); // Reset the link
 
     try {
-      const response = await axios.post('http://localhost:5000/api/password/forgot-password', {
+      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', {
         email
       });
       

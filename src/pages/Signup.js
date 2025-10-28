@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PieChart, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import axios from 'axios';
 
@@ -13,7 +13,8 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [verificationUrl, setVerificationUrl] = useState('');
+  const navigate = useNavigate();
 
 const handleSubmit = async (e) => {
   e.preventDefault();

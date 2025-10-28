@@ -12,64 +12,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
-exports.signup = async (req, res) => {
-  console.log('🔍 SIGNUP REQUEST RECEIVED:', req.body);
-  
-  const { name, email, password } = req.body;
-  
-  try {
-    // Basic validation
-    if (!name || !email || !password) {
-      console.log('❌ Missing required fields');
-      return res.status(400).json({ message: 'All fields are required' });
-    }
 
-    if (password.length < 6) {
-      console.log('❌ Password too short');
-      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
-    }
-
-    console.log('✅ Validation passed, creating pending registration...');
-
-    // Create pending registration
-    const pendingRegistration = await createPendingRegistration(name, email, password);
-
-    console.log('✅ Pending registration created, sending verification email');
-
-    // Send verification email
-    try {
-      const verificationUrl = await sendVerificationEmail(email, pendingRegistration.verification_token);
-
-      const response = {
-        success: true,
-        message: 'Registration successful! Please check your email to verify your account.'
-      };
-
-      // Only include verification URL in development
-      if (process.env.NODE_ENV !== 'production' && verificationUrl) {
-        response.verificationUrl = verificationUrl;
-      }
-
-      res.status(201).json(response);
-
-    } catch (emailError) {
-      console.error('❌ Failed to send verification email:', emailError);
-      // Delete the pending registration if email fails
-      await pool.query('DELETE FROM pending_registrations WHERE id = $1', [pendingRegistration.id]);
-      res.status(500).json({ 
-        message: 'Error sending verification email. Please try again.' 
-      });
-    }
-
-  } catch (err) {
-    console.error('SIGNUP ERROR:', err);
-    if (err.message === 'Email already in use') {
-      res.status(400).json({ message: 'Email already in use' });
-    } else {
-      res.status(500).json({ message: 'Signup failed', error: err.message });
-    }
-  }
-}; // <-- MAKE SURE THIS CLOSING BRACE AND PAREN ARE HERE
 // ==================== AUTHENTICATION FUNCTIONS ====================
 
 exports.signup = async (req, res) => {
@@ -242,51 +185,47 @@ const sendVerificationEmail = async (email, verificationToken) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const verificationUrl = `${frontendUrl}/verify-email/${verificationToken}`;
 
-    // Production: Send real email, no URL in response
-    if (process.env.NODE_ENV === 'production') {
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Verify Your Email - Financially',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(to right, #f59e0b, #eab308); padding: 20px; text-align: center;">
-              <h2 style="color: #1e3a8a; margin: 0;">Financially</h2>
-              <p style="color: #1e3a8a; margin: 5px 0 0 0;">Email Verification</p>
-            </div>
-            <div style="padding: 20px;">
-              <p>Welcome to Financially! Please verify your email address to complete your registration.</p>
-              <p>Click the link below to verify your email and activate your account (valid for 24 hours):</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationUrl}" 
-                   style="background: linear-gradient(to right, #f59e0b, #eab308); 
-                          color: #1e3a8a; 
-                          padding: 12px 24px; 
-                          text-decoration: none; 
-                          border-radius: 8px; 
-                          font-weight: bold;
-                          display: inline-block;">
-                  Verify Email & Complete Registration
-                </a>
-              </div>
-              <p>If you didn't create an account, please ignore this email.</p>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-              <p style="color: #6b7280; font-size: 14px;">Muhammad Nasirdeen</p>
-            </div>
-          </div>
-        `
-      };
+    console.log('📧 SENDING REAL EMAIL TO:', email);
 
-      await transporter.sendMail(mailOptions);
-      console.log('✅ Verification email sent to:', email);
-      return null; // No URL in production
-    } else {
-      // Development: Return URL for testing
-      console.log('📧 DEVELOPMENT: Verification URL:', verificationUrl);
-      return verificationUrl;
-    }
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Verify Your Email - Financially',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(to right, #f59e0b, #eab308); padding: 20px; text-align: center;">
+            <h2 style="color: #1e3a8a; margin: 0;">Financially</h2>
+            <p style="color: #1e3a8a; margin: 5px 0 0 0;">Email Verification</p>
+          </div>
+          <div style="padding: 20px;">
+            <p>Welcome to Financially! Please verify your email address to complete your registration.</p>
+            <p>Click the link below to verify your email and activate your account (valid for 24 hours):</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationUrl}" 
+                 style="background: linear-gradient(to right, #f59e0b, #eab308); 
+                        color: #1e3a8a; 
+                        padding: 12px 24px; 
+                        text-decoration: none; 
+                        border-radius: 8px; 
+                        font-weight: bold;
+                        display: inline-block;">
+                Verify Email & Complete Registration
+              </a>
+            </div>
+            <p>If you didn't create an account, please ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="color: #6b7280; font-size: 14px;">Muhammad Nasirdeen</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ REAL EMAIL SENT SUCCESSFULLY TO:', email);
+    return null;
+
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error('❌ FAILED TO SEND EMAIL:', error);
     throw error;
   }
 };
@@ -415,10 +354,81 @@ exports.resendVerificationEmail = async (req, res) => {
 
 // ==================== PASSWORD RESET FUNCTIONS ====================
 
+// ==================== PASSWORD RESET FUNCTIONS ====================
+
+const sendPasswordResetEmail = async (email, resetToken) => {
+  try {
+    console.log('📧 STEP 5.1: Starting to send password reset email');
+    
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    console.log('📧 STEP 5.2: Reset URL generated:', resetUrl);
+    console.log('📧 STEP 5.3: Sending to email:', email);
+    console.log('📧 STEP 5.4: Using email user:', process.env.EMAIL_USER);
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Reset Your Password - Financially',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(to right, #f59e0b, #eab308); padding: 20px; text-align: center;">
+            <h2 style="color: #1e3a8a; margin: 0;">Financially</h2>
+            <p style="color: #1e3a8a; margin: 5px 0 0 0;">Password Reset</p>
+          </div>
+          <div style="padding: 20px;">
+            <p>You have requested to reset your password for your Financially account.</p>
+            <p>Click the link below to reset your password (valid for 1 hour):</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" 
+                 style="background: linear-gradient(to right, #f59e0b, #eab308); 
+                        color: #1e3a8a; 
+                        padding: 12px 24px; 
+                        text-decoration: none; 
+                        border-radius: 8px; 
+                        font-weight: bold;
+                        display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+            <p>If you did not request a password reset, please ignore this email.</p>
+            <p style="word-break: break-all; background: #f8fafc; padding: 10px; border-radius: 5px; border: 1px solid #e5e7eb;">
+              <strong>Reset Link:</strong><br>
+              ${resetUrl}
+            </p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="color: #6b7280; font-size: 14px;">Muhammad Nasirdeen</p>
+          </div>
+        </div>
+      `
+    };
+
+    console.log('📧 STEP 5.5: About to send mail with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
+    });
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ STEP 5.6: PASSWORD RESET EMAIL SENT SUCCESSFULLY TO:', email);
+    return null;
+
+  } catch (error) {
+    console.error('❌ STEP 5.6 FAILED: FAILED TO SEND PASSWORD RESET EMAIL');
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Full error:', error);
+    throw error;
+  }
+};
+
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
+    console.log('🔐 STEP 1: Forgot password request for:', email);
+
     // Check if user exists
     const userResult = await pool.query(
       'SELECT * FROM users WHERE email = $1',
@@ -426,8 +436,11 @@ exports.forgotPassword = async (req, res) => {
     );
     const user = userResult.rows[0];
 
+    console.log('🔐 STEP 2: User found:', !!user);
+
     // For security, don't reveal if email exists
     if (!user) {
+      console.log('⚠️ User not found, but returning success for security');
       return res.status(200).json({ 
         message: 'If an account with that email exists, a reset link has been sent.' 
       });
@@ -437,26 +450,49 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
 
+    console.log('🔐 STEP 3: Generated reset token for:', email);
+
     // Save token to database
     await pool.query(
       'UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3',
       [resetToken, resetTokenExpiry, email]
     );
 
-    // For development: Return the reset link directly
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
-    
-    console.log('🔐 Password reset link for development:', resetUrl);
-    console.log('📧 Would have sent email to:', email);
+    console.log('🔐 STEP 4: Reset token saved to database');
 
-    res.status(200).json({ 
-      message: 'If an account with that email exists, a reset link has been sent.',
-      // Include reset link for development only
-      resetLink: resetUrl
-    });
+    // Send password reset email
+    try {
+      console.log('🔐 STEP 5: Attempting to send password reset email');
+      await sendPasswordResetEmail(email, resetToken);
+      console.log('🔐 STEP 6: Password reset email sent successfully');
+      
+      res.status(200).json({ 
+        message: 'If an account with that email exists, a reset link has been sent.'
+      });
+      
+    } catch (emailError) {
+      console.error('❌ STEP 5 FAILED: Failed to send password reset email:', emailError);
+      console.error('❌ Full error details:', emailError.message);
+      console.error('❌ Error stack:', emailError.stack);
+      
+      // Clear the reset token if email fails
+      await pool.query(
+        'UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE email = $1',
+        [email]
+      );
+      res.status(500).json({ 
+        message: 'Error sending reset email. Please try again.' 
+      });
+    }
+
   } catch (err) {
-    console.error('Password reset request error:', err);
-    res.status(500).json({ message: 'Error processing request', error: err.message });
+    console.error('❌ MAIN CATCH: Password reset request error:', err);
+    console.error('❌ Full error details:', err.message);
+    console.error('❌ Error stack:', err.stack);
+    res.status(500).json({ 
+      message: 'Error processing request', 
+      error: err.message 
+    });
   }
 };
 
@@ -464,6 +500,8 @@ exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
+    console.log('🔐 Reset password attempt with token');
+
     // Find user by valid reset token
     const userResult = await pool.query(
       'SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > $2',
@@ -472,8 +510,13 @@ exports.resetPassword = async (req, res) => {
     const user = userResult.rows[0];
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+      console.log('❌ Invalid or expired reset token');
+      return res.status(400).json({ 
+        message: 'Invalid or expired reset token. Please request a new reset link.' 
+      });
     }
+
+    console.log('✅ Valid reset token found for user:', user.email);
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -484,10 +527,17 @@ exports.resetPassword = async (req, res) => {
       [hashedPassword, user.id]
     );
 
-    res.status(200).json({ message: 'Password reset successfully' });
+    console.log('✅ Password reset successfully for user:', user.email);
+
+    res.status(200).json({ 
+      message: 'Password reset successfully. You can now log in with your new password.' 
+    });
   } catch (err) {
-    console.error('Password reset error:', err);
-    res.status(500).json({ message: 'Error resetting password', error: err.message });
+    console.error('❌ Password reset error:', err);
+    res.status(500).json({ 
+      message: 'Error resetting password', 
+      error: err.message 
+    });
   }
 };
 
@@ -495,6 +545,8 @@ exports.verifyResetToken = async (req, res) => {
   const { token } = req.params;
 
   try {
+    console.log('🔐 Verifying reset token');
+
     const userResult = await pool.query(
       'SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > $2',
       [token, Date.now()]
@@ -502,12 +554,23 @@ exports.verifyResetToken = async (req, res) => {
     const user = userResult.rows[0];
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+      console.log('❌ Invalid or expired reset token');
+      return res.status(400).json({ 
+        message: 'Invalid or expired reset token. Please request a new reset link.' 
+      });
     }
 
-    res.status(200).json({ message: 'Token is valid', email: user.email });
+    console.log('✅ Reset token is valid for user:', user.email);
+
+    res.status(200).json({ 
+      message: 'Token is valid', 
+      email: user.email 
+    });
   } catch (err) {
-    console.error('Token verification error:', err);
-    res.status(500).json({ message: 'Error verifying token', error: err.message });
+    console.error('❌ Token verification error:', err);
+    res.status(500).json({ 
+      message: 'Error verifying token', 
+      error: err.message 
+    });
   }
 };

@@ -4,14 +4,19 @@ import { usePlaidLink } from 'react-plaid-link';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import { 
-  User,   
+  User, 
+  Mail, 
+  Calendar, 
   Shield, 
+  ArrowLeft,
   Edit,
   Save,
   X,
   Bell,
   Lock,
+  Eye,
   Globe,
+  Smartphone,
   CreditCard,
   Unlink,
   Plus
